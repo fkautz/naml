@@ -35,9 +35,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"sigs.k8s.io/kind/pkg/exec"
-
 	"github.com/kris-nova/logger"
+	"sigs.k8s.io/kind/pkg/exec"
 )
 
 // [ NAML RPC Spec ]
@@ -300,6 +299,9 @@ func AddRPC(path string) error {
 			case childOut.Len() > 0:
 				message := childOut.Bytes()
 				// According to the naml RPC this should be the TCP port
+				if len(message) < 6 {
+					break
+				}
 				rpcHello := string(message)
 				rpcSplit := strings.Split(rpcHello, "\n")
 				if len(rpcSplit) < 1 {

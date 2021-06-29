@@ -88,8 +88,16 @@ func RunCommandLineWithOptions() error {
    Uninstall applications.
       naml uninstall <app>`,
 		Action: func(context *cli.Context) error {
+			// ----------------------------------
+			err := AllInit(verbose, with.Value())
+			if err != nil {
+				return err
+			}
+			// ----------------------------------
+
 			Banner()
-			cli.ShowSubcommandHelp(context)
+			cli.ShowAppHelp(context)
+			List()
 			return nil
 		},
 		Flags: []cli.Flag{
@@ -281,12 +289,26 @@ func Install(app Deployable) error {
 }
 
 // List the naml package information in stdout
+//
+// TODO We should output in a familiar way (maybe kubectl)
+// TODO We should allow this function to be overridden
 func List() {
-	fmt.Println("")
+	// indent is the number of spaces to tab over for the list
+	indent := 20
+	if len(Registry()) < 1 {
+		return
+	}
+	fmt.Printf("\nREGISTRY:\n")
 	for _, app := range Registry() {
-		fmt.Printf("[%s]\n", app.Meta().Name)
-		fmt.Printf("  description : %s\n", app.Description())
-		fmt.Printf("  version     : %s\n", app.Meta().ResourceVersion)
+		space := ""
+		for i := len(app.Meta().Name); i < indent; i++ {
+			space = fmt.Sprintf("%s%s", space, " ")
+		}
+		fmt.Printf("    [%s]%s%s\n", app.Meta().Name, space, app.Meta().ResourceVersion)
+		if app.Meta().Namespace != "" {
+			fmt.Printf("     (%s)\n", app.Meta().Namespace)
+		}
+		fmt.Printf("     %s\n", app.Description())
 		fmt.Printf("\n")
 	}
 }

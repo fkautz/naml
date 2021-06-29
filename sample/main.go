@@ -37,9 +37,9 @@ import (
 // main is the main entry point for your CLI application
 func main() {
 
-	naml.Register(&NAMLApp{"beeps"})
-	naml.Register(&NAMLApp{"boops"})
-	naml.Register(&NAMLApp{"meeps"})
+	naml.Register(New("beeps", "Basic busybox application.", "default"))
+	naml.Register(New("boops", "Just another busybox application.", "default"))
+	naml.Register(New("meeps-meeps", "Just another busybox app - like the others.", "default"))
 
 	// Run the default CLI tooling
 	err := naml.RunCommandLine()
@@ -51,26 +51,35 @@ func main() {
 
 // NAMLApp is used for testing and debugging
 type NAMLApp struct {
-	Name string
+	description string
+	meta        *metav1.ObjectMeta
+}
+
+func New(name, description, namespace string) *NAMLApp {
+	return &NAMLApp{
+		meta: &metav1.ObjectMeta{
+			Name:            name,
+			ResourceVersion: "1.0.0",
+			Namespace:       namespace,
+		},
+		description: description,
+	}
 }
 
 func (n *NAMLApp) Install(client *kubernetes.Clientset) error {
-	deployment := naml.BusyboxDeployment(n.Name)
-	_, err := client.AppsV1().Deployments("default").Create(context.TODO(), deployment, metav1.CreateOptions{})
+	deployment := naml.BusyboxDeployment(n.Meta().Name)
+	_, err := client.AppsV1().Deployments(n.Meta().Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
 	return err
 }
 
 func (n *NAMLApp) Uninstall(client *kubernetes.Clientset) error {
-	return client.AppsV1().Deployments("default").Delete(context.TODO(), n.Name, metav1.DeleteOptions{})
+	return client.AppsV1().Deployments(n.Meta().Namespace).Delete(context.TODO(), n.Meta().Name, metav1.DeleteOptions{})
 }
 
 func (n *NAMLApp) Description() string {
-	return "A wonderful sample application."
+	return n.description
 }
 
 func (n *NAMLApp) Meta() *metav1.ObjectMeta {
-	return &metav1.ObjectMeta{
-		Name:            n.Name,
-		ResourceVersion: "1.0.0",
-	}
+	return n.meta
 }

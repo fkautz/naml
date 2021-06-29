@@ -38,7 +38,9 @@ func Banner() {
 	fmt.Printf("|    ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝    |\n")
 	fmt.Printf("|       Not Another Markup Language           |\n")
 	fmt.Printf("|       Kris Nóva <kris@nivenly.com>          |\n")
-	fmt.Printf("|  %s   |\n", Version)
+	if Version != "" {
+		fmt.Printf("|  %s   |\n", Version)
+	}
 	fmt.Printf("+---------------------------------------------+\n\n")
 
 }
